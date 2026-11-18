@@ -4,13 +4,3 @@ id,name,age,score,email
 3,,19,150,carol@example.com
 4,Dave,22,-5,not-an-email
 5,Eve,21,78,eve@example.com
--1,Frank,25,60,frank@example.com
-abc,Grace,30,88,grace@example.com
-0,Henry,18,70,henry@example.com
-9,Ivy,101,105,ivy@example.com
-10,Jack,16,0,jack@example.com
-11,Kate,25,90,
-12,Liam,25,80,liam@example.com
-13,   ,17,65,   @example.com
-14,Mia, ,50,mia@example.com
-15,Noah,45,100,noah@example.com
