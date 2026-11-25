@@ -1,0 +1,12 @@
+
+customer_id,name,email,age,city
+1,Rahul Sharma,rahul@gmail.com,24,Pune
+2,Priya Patil,priya@gmail.com,22,Mumbai
+3,Amit Verma,amit@gmail.com,28,Delhi
+4,Neha Joshi,neha@gmail.com,25,Pune
+5,,rohan@gmail.com,30,Nashik
+6,Rohan Mehta,,26,Mumbai
+7,Sneha Kulkarni,sneha@gmail.com,23,Pune
+8,Rahul Sharma,rahul@gmail.com,24,Pune
+9,Arjun Shah,arjun@gmail.com,29,Surat
+10,Kavya Desai,kavya@gmail.com,21,Mumbai
