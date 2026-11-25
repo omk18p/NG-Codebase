@@ -1,1 +1,58 @@
-[]
+[
+  {
+    "customer_id": "1",
+    "name": "Rahul Sharma",
+    "email": "rahul@gmail.com",
+    "age": "24",
+    "city": "Pune"
+  },
+  {
+    "customer_id": "2",
+    "name": "Priya Patil",
+    "email": "priya@gmail.com",
+    "age": "22",
+    "city": "Mumbai"
+  },
+  {
+    "customer_id": "3",
+    "name": "Amit Verma",
+    "email": "amit@gmail.com",
+    "age": "28",
+    "city": "Delhi"
+  },
+  {
+    "customer_id": "4",
+    "name": "Neha Joshi",
+    "email": "neha@gmail.com",
+    "age": "25",
+    "city": "Pune"
+  },
+  {
+    "customer_id": "7",
+    "name": "Sneha Kulkarni",
+    "email": "sneha@gmail.com",
+    "age": "23",
+    "city": "Pune"
+  },
+  {
+    "customer_id": "8",
+    "name": "Rahul Sharma",
+    "email": "rahul@gmail.com",
+    "age": "24",
+    "city": "Pune"
+  },
+  {
+    "customer_id": "9",
+    "name": "Arjun Shah",
+    "email": "arjun@gmail.com",
+    "age": "29",
+    "city": "Surat"
+  },
+  {
+    "customer_id": "10",
+    "name": "Kavya Desai",
+    "email": "kavya@gmail.com",
+    "age": "21",
+    "city": "Mumbai"
+  }
+]

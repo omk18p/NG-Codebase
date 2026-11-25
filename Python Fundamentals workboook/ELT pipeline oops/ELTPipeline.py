@@ -2,7 +2,7 @@
 data_pipeline.py — OOP Lab Implementation 
 """ 
 from abc import ABC, abstractmethod 
-from datetime import datetime 
+from datetime import datetime, timezone
 import csv, json, time, logging 
   
 logging.basicConfig(level=logging.INFO, 
@@ -68,8 +68,7 @@ class BaseTransformer(ABC):
   
   
 class CleanTransformer(BaseTransformer): 
-    def __init__(self, null_cols: list[str] = None, 
-                 drop_duplicates: bool = True): 
+    def __init__(self, null_cols: list[str] = None,  drop_duplicates: bool = True): 
         self.null_cols       = null_cols or [] 
         self.drop_duplicates = drop_duplicates 
   
@@ -88,9 +87,28 @@ class CleanTransformer(BaseTransformer):
                     seen.add(key); unique.append(r) 
             data = unique 
         logger.info(f'{len(data)} rows after cleaning.') 
-        
         return data 
-  
+
+class UpperCaseTransformer(BaseTransformer):
+    def transform(self,data):
+        if not data:
+            return data
+        for row in data:
+            for key,val in row.items():
+                if isinstance(val,str):
+                    row[key]=val.upper()
+        return data;
+
+class ChainedTransformer(BaseTransformer):
+    def __init__(self,transformers:list):
+        self.transformers=transformers
+
+    def transform(self,data):
+        for t in self.transformers:
+            data=t.transform(data)
+        return data
+            
+    
   
 # ══════════════════════════════════════════════════════ 
 # LOADERS 
@@ -161,7 +179,7 @@ class DataPipeline:
     # ── Public interface ────────────────────────────── 
     def run(self) -> dict: 
         """Execute the full ETL pipeline. Returns metrics.""" 
-        self.__metrics['started_at'] = datetime.utcnow().isoformat() 
+        self.__metrics['started_at'] = datetime.now(timezone.utc).isoformat()
         self.__metrics['status']     = 'running' 
         start = time.time() 
         logger.info(f'Pipeline [{self.name}] STARTED') 
@@ -177,11 +195,11 @@ class DataPipeline:
             self.__metrics['status'] = 'failed' 
             self.__metrics['errors'].append(str(e)) 
             logger.error(f'Pipeline [{self.name}] FAILED: {e}') 
-            raise 
+            # raise 
   
         finally: 
-            self.__metrics['duration_sec']  = round(time.time() - start, 3) 
-            self.__metrics['finished_at']   = datetime.utcnow().isoformat() 
+            self.__metrics['duration_sec']  = round(time.time() - start, 10) 
+            self.__metrics['finished_at']   = datetime.now(timezone.utc).isoformat() 
   
         return self.get_metrics() 
   
@@ -195,21 +213,49 @@ class DataPipeline:
   
     # ── Private ETL steps ───────────────────────────── 
     def _extract(self) -> list[dict]: 
-        logger.info('  [E] Extract phase...') 
-        data = self.extractor.extract() 
-        self.__metrics['rows_extracted'] = len(data) 
-        return data 
+
+        for i in range(self.max_retries +1):
+            try:
+                logger.info('  [E] Extract phase...') 
+                data = self.extractor.extract() 
+            except Exception as e:
+                self.__metrics['errors'].append(str(e))
+                if i == self.max_retries:
+                  raise
+                time.sleep(2 ** i)
+            else:
+                self.__metrics['rows_extracted'] = len(data)
+                return data 
   
     def _transform(self, data: list[dict]) -> list[dict]: 
-        logger.info('  [T] Transform phase...') 
-        result = self.transformer.transform(data) 
-        self.__metrics['rows_transformed'] = len(result) 
-        return result 
+        for i in range(self.max_retries +1):
+                    try:
+                        logger.info('  [T] Transform phase...') 
+                        result = self.transformer.transform(data) 
+                    except Exception as e:
+                        self.__metrics['errors'].append(str(e))
+                        if i == self.max_retries:
+                          raise
+                        time.sleep(2 ** i)
+                    else:
+                        self.__metrics['rows_transformed'] = len(result)
+                        return result 
   
-    def _load(self, data: list[dict]) -> None: 
-        logger.info('  [L] Load phase...') 
-        n = self.loader.load(data) 
-        self.__metrics['rows_loaded'] = n 
+    def _load(self, data: list[dict]) -> None:
+        for i in range(self.max_retries +1):
+            try:
+                logger.info('  [L] Load phase...') 
+                n = self.loader.load(data)  
+            except Exception as e:
+                self.__metrics['errors'].append(str(e))
+                if i == self.max_retries:
+                 raise
+                time.sleep(2 ** i)
+            else:
+                self.__metrics['rows_loaded'] = n
+                return n 
+
+        
   
     def __repr__(self): 
         return ( 
@@ -226,10 +272,11 @@ if __name__ == '__main__':
     pipeline = DataPipeline( 
         name        = 'customer_etl', 
         extractor   = CSVExtractor('crm', 'customers_raw.csv'), 
-        transformer = CleanTransformer( 
+        transformer =ChainedTransformer( [CleanTransformer( 
                           null_cols=['email', 'name'], 
-                          drop_duplicates=True), 
-        loader      = JSONLoader('customers_clean.json'), 
+                          drop_duplicates=True),
+                          UpperCaseTransformer()]), 
+        loader      = CSVLoader('customers_clean.csv'), 
     ) 
   
     metrics = pipeline.run() 
